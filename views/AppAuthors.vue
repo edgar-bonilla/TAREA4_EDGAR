@@ -34,91 +34,6 @@
         </tbody>
       </table>
     </div>
-
- 
-    <div v-if="showTab === 'create'">
-      <div class="container py-4 d-flex justify-content-center">
-        <div class="card" style="width: 50rem;">
-          <div class="card-body">
-            <h1 class="title mb-4">Create Author</h1>
-
-            <form @submit.prevent="createAuthor" class="needs-validation" novalidate>
-              <div class="mb-3 row">
-                <label for="name" class="col-sm-2 col-form-label">Name</label>
-                <div class="col-sm-7">
-                  <input type="text" v-model="newAuthor.name" id="name" class="form-control" placeholder="Enter name" required />
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="nationality" class="col-sm-2 col-form-label">Nationality</label>
-                <div class="col-sm-7">
-                  <input type="text" v-model="newAuthor.nationality" id="nationality" class="form-control" placeholder="Enter nationality" required />
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="birth_year" class="col-sm-2 col-form-label">Birth Year</label>
-                <div class="col-sm-7">
-                  <input type="number" v-model="newAuthor.birth_year" id="birth_year" class="form-control" placeholder="Enter birth year" required />
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="fields" class="col-sm-2 col-form-label">Fields</label>
-                <div class="col-sm-7">
-                  <input type="text" v-model="newAuthor.fields" id="fields" class="form-control" placeholder="Enter fields, separated by commas" required />
-                </div>
-              </div>
-              <div class="d-flex">
-                <button type="submit" class="btn btn-primary">Create</button>
-                <button type="button" class="btn btn-secondary" @click="cancelCreate">Cancel</button>
-              </div>
-            </form>
-            <br><br><br>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="showTab === 'edit' && editingAuthor">
-      <div class="container py-4 d-flex justify-content-center">
-        <div class="card" style="width: 50rem;">
-          <div class="card-body">
-            <h1 class="title mb-4">Edit Author</h1>
-
-            <form @submit.prevent="updateAuthor" class="needs-validation" novalidate>
-              <div class="mb-3 row">
-                <label for="name" class="col-sm-2 col-form-label">Name</label>
-                <div class="col-sm-7">
-                  <input type="text" v-model="editingAuthor.name" id="name" class="form-control" placeholder="Enter name" required />
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="nationality" class="col-sm-2 col-form-label">Nationality</label>
-                <div class="col-sm-7">
-                  <input type="text" v-model="editingAuthor.nationality" id="nationality" class="form-control" placeholder="Enter nationality" required />
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="birth_year" class="col-sm-2 col-form-label">Birth Year</label>
-                <div class="col-sm-7">
-                  <input type="number" v-model="editingAuthor.birth_year" id="birth_year" class="form-control" placeholder="Enter birth year" required />
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="fields" class="col-sm-2 col-form-label">Fields</label>
-                <div class="col-sm-7">
-                  <input type="text" v-model="editingAuthor.fields" id="fields" class="form-control" placeholder="Enter fields, separated by commas" required />
-                </div>
-              </div>
-              <div class="d-flex">
-                <button type="submit" class="btn btn-primary">Update</button>
-                <button type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
-              </div>
-            </form>
-            <br><br><br>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -134,9 +49,14 @@ export default {
   },
   async mounted() {
     try {
-    
-      const response = await fetch(`${this.$url}/.netlify/functions/authorFindAll`); 
+      const response = await fetch(`${this.$url}/.netlify/functions/authorFindAll`);
       this.authors = await response.json();
+      console.log('Authors loaded:', this.authors); // 📢 Muestra toda la lista de autores
+
+      // Mostrar cada _id de los autores en la consola
+      this.authors.forEach(author => {
+        console.log('Author ID:', author._id);
+      });
     } catch (error) {
       console.error("Error fetching authors:", error);
     }
@@ -149,8 +69,6 @@ export default {
       this.showTab = 'table';
     },
     async createAuthor() {
-   
-      
       this.newAuthor.fields = this.newAuthor.fields.split(',').map(field => field.trim());
       
       const response = await fetch('/.netlify/functions/authorsInsert', {
@@ -175,32 +93,27 @@ export default {
       this.editingAuthor = null;
     },
     async updateAuthor() {
+      if (Array.isArray(this.editingAuthor.fields)) {
+        this.editingAuthor.fields = this.editingAuthor.fields.join(', ');
+      }
 
-  if (Array.isArray(this.editingAuthor.fields)) {
-                      
-    this.editingAuthor.fields = this.editingAuthor.fields.join(', ');
-  }
+      this.editingAuthor.fields = (this.editingAuthor.fields || '').split(',').map(field => field.trim());
 
-  
-this.editingAuthor.fields = (this.editingAuthor.fields || '').split(',').map(field => field.trim());  // Para el formulario de edición
+      const response = await fetch(`${this.$url}/.netlify/functions/authorUpdate/${this.editingAuthor._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(this.editingAuthor),
+      });
 
-
-  const response = await fetch(`${this.$url}/.netlify/functions/authorUpdate/${this.editingAuthor.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
+      const updatedAuthor = await response.json();
+      const index = this.authors.findIndex(author => author._id === updatedAuthor._id);
+      if (index !== -1) {
+        this.authors[index] = updatedAuthor;
+      }
+      this.cancelEdit();
     },
-    body: JSON.stringify(this.editingAuthor),
-  });
-
-  const updatedAuthor = await response.json();
-  const index = this.authors.findIndex(author => author.id === updatedAuthor.id);
-  if (index !== -1) {
-    this.authors[index] = updatedAuthor;
-  }
-  this.cancelEdit();
-},
-
     async deleteAuthor(author) {
       const response = await fetch(`${this.$url}/.netlify/functions/authorsDelete/${author._id}`, {
         method: 'DELETE',
