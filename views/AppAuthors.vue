@@ -135,7 +135,7 @@ export default {
   async mounted() {
     try {
       // Fetch the authors from the backend
-      const response = await fetch('/.netlify/functions/authorFindAll'); 
+      const response = await fetch(`${this.$url}/.netlify/functions/authorFindAll`); 
       this.authors = await response.json();
     } catch (error) {
       console.error("Error fetching authors:", error);
@@ -185,7 +185,7 @@ export default {
 this.editingAuthor.fields = (this.editingAuthor.fields || '').split(',').map(field => field.trim());  // Para el formulario de edición
 
 
-  const response = await fetch(`/.netlify/functions/authorUpdate/${this.editingAuthor.id}`, {
+  const response = await fetch(`${this.$url}/.netlify/functions/authorUpdate/${this.editingAuthor.id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ this.editingAuthor.fields = (this.editingAuthor.fields || '').split(',').map(fie
 },
 
     async deleteAuthor(author) {
-      const response = await fetch(`/.netlify/functions/authorsDelete/${author._id}`, {
+      const response = await fetch(`${this.$url}/.netlify/functions/authorsDelete/${author._id}`, {
         method: 'DELETE',
       });
 
