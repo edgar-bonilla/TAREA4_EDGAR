@@ -3,11 +3,13 @@
     <br><br><br>
     <h1 class="title mb-4">Books</h1>
 
+    <!-- Botón para mostrar el formulario de creación -->
     <div v-if="showTab === 'table'">
       <div class="d-flex justify-content-end">
         <button class="btn btn-success mb-4" @click="showCreateForm">Create Book</button>
       </div>
 
+      <!-- Tabla de libros -->
       <table class="table table-bordered table-hover" style="width: 100%;">
         <thead class="table-dark">
           <tr>
@@ -78,6 +80,7 @@
       </div>
     </div>
 
+   
     <div v-if="showTab === 'edit' && editingBook">
       <div class="container py-4 d-flex justify-content-center">
         <div class="card" style="width: 50rem;">
@@ -89,10 +92,13 @@
                 <div class="col-sm-7">
                   <input v-if="key !== '_id' && key !== 'author' && key !== 'publisher'" v-model="editingBook[key]"
                     :id="key" class="form-control" :placeholder="'Enter ' + key" required />
+
+                  
                   <select v-if="key === 'author'" v-model="editingBook[key]" :id="key" class="form-select" required>
                     <option v-for="author in authors" :key="author._id" :value="author._id">{{ author.name }}</option>
                   </select>
 
+                
                   <select v-if="key === 'publisher'" v-model="editingBook[key]" :id="key" class="form-select" required>
                     <option v-for="publisher in publishers" :key="publisher._id" :value="publisher._id">{{
                       publisher.name }}</option>
@@ -145,6 +151,7 @@ export default {
 
       if (authorsResponse.ok) {
         this.authors = await authorsResponse.json();
+        
       } else {
         console.error('Error fetching authors.');
       }
@@ -163,6 +170,7 @@ export default {
    
     getAuthorName(authorId) {
       const author = this.authors.find(a => a._id === authorId);
+      console.log("autores",author);
       return author ? author.name : ''; 
     },
 

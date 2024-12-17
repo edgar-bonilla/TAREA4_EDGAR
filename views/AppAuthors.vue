@@ -134,7 +134,7 @@ export default {
   },
   async mounted() {
     try {
-      // Fetch the authors from the backend
+    
       const response = await fetch(`${this.$url}/.netlify/functions/authorFindAll`); 
       this.authors = await response.json();
     } catch (error) {
@@ -149,7 +149,7 @@ export default {
       this.showTab = 'table';
     },
     async createAuthor() {
-      // Parse fields from the input string
+   
       
       this.newAuthor.fields = this.newAuthor.fields.split(',').map(field => field.trim());
       

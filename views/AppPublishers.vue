@@ -23,7 +23,7 @@
             <td>{{ publisher._id }}</td>
             <td>{{ publisher.name }}</td>
             <td>{{ publisher.country }}</td>
-            <td>{{ publisher.founded_year }}</td>
+            <td>{{ publisher.founded }}</td>
             <td class="action-buttons">
               <button class="btn btn-warning btn-sm m-2" @click="editPublisher(publisher)">Edit</button>
               <button class="btn btn-danger btn-sm" @click="deletePublisher(publisher)">Delete</button>
@@ -53,9 +53,9 @@
                 </div>
               </div>
               <div class="mb-3 row">
-                <label for="founded_year" class="col-sm-2 col-form-label">Year Founded</label>
+                <label for="founded" class="col-sm-2 col-form-label">Year Founded</label>
                 <div class="col-sm-7">
-                  <input type="number" v-model="newPublisher.founded_year" id="founded_year" class="form-control" placeholder="Enter year founded" required />
+                  <input type="number" v-model="newPublisher.founded" id="founded" class="form-control" placeholder="Enter year founded" required />
                 </div>
               </div>
               <div class="d-flex">
@@ -88,9 +88,9 @@
                 </div>
               </div>
               <div class="mb-3 row">
-                <label for="edit-founded_year" class="col-sm-2 col-form-label">Year Founded</label>
+                <label for="edit-founded" class="col-sm-2 col-form-label">Year Founded</label>
                 <div class="col-sm-7">
-                  <input type="number" v-model="editingPublisher.founded_year" id="edit-founded_year" class="form-control" placeholder="Enter year founded" required />
+                  <input type="number" v-model="editingPublisher.founded" id="edit-founded" class="form-control" placeholder="Enter year founded" required />
                 </div>
               </div>
               <div class="d-flex">
@@ -110,7 +110,7 @@ export default {
   data() {
     return {
       publishers: [],
-      newPublisher: { name: '', country: '', founded_year: null }, 
+      newPublisher: { name: '', country: '', founded: '' },  
       editingPublisher: null,
       showTab: 'table',
     };
@@ -120,17 +120,25 @@ export default {
   },
   methods: {
     async fetchPublishers() {
-      try {
-        const response = await fetch(`${this.$url}/.netlify/functions/publishersAll`);
-        if (response.ok) {
-          this.publishers = await response.json();
-        } else {
-          console.error('Failed to fetch publishers');
-        }
-      } catch (error) {
-        console.error('Error fetching publishers:', error);
-      }
-    },
+  try {
+    const response = await fetch(`${this.$url}/.netlify/functions/publishersAll`);
+    if (response.ok) {
+      const data = await response.json();
+      // Convertir el campo 'founded' a un número real si es necesario
+      this.publishers = data.map(publisher => {
+        return {
+          ...publisher,
+          founded: publisher.founded?.$numberInt ? parseInt(publisher.founded.$numberInt) : publisher.founded,
+        };
+      });
+    } else {
+      console.error('Failed to fetch publishers');
+    }
+  } catch (error) {
+    console.error('Error fetching publishers:', error);
+  }
+},
+
     async createPublisher() {
       try {
         const response = await fetch(`${this.$url}/.netlify/functions/publishersInsert`, {
@@ -139,7 +147,7 @@ export default {
           body: JSON.stringify(this.newPublisher),
         });
         if (response.ok) {
-          this.newPublisher = { name: '', country: '', founded_year: null };
+          this.newPublisher = { name: '', country: '', founded: null };
           this.showTab = 'table';
           await this.fetchPublishers();
         } else {
