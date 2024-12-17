@@ -3,12 +3,10 @@
     <br><br><br>
     <h1 class="title mb-4">Authors</h1>
 
-    <!-- Botón para mostrar el formulario de creación -->
     <div class="d-flex justify-content-end mb-4">
       <button class="btn btn-success" @click="showCreateForm">Create Author</button>
     </div>
 
-    <!-- Pestaña para mostrar la tabla de autores -->
     <div v-if="showTab === 'table'">
       <table class="table table-bordered table-hover">
         <thead class="table-dark">
@@ -29,7 +27,7 @@
             <td>{{ author.birth_year }}</td>
             <td>{{ author.fields ? author.fields.join(', ') : '' }}</td>
             <td class="action-buttons">
-              <button class="btn btn-warning btn-sm" @click="editAuthor(author)">Edit</button>
+              <button class="btn btn-warning btn-sm me-2" @click="editAuthor(author)">Edit</button>
               <button class="btn btn-danger btn-sm" @click="deleteAuthor(author)">Delete</button>
             </td>
           </tr>
@@ -37,14 +35,13 @@
       </table>
     </div>
 
-    <!-- Pestaña para crear un autor -->
+ 
     <div v-if="showTab === 'create'">
       <div class="container py-4 d-flex justify-content-center">
         <div class="card" style="width: 50rem;">
           <div class="card-body">
             <h1 class="title mb-4">Create Author</h1>
 
-            <!-- Formulario para crear autor -->
             <form @submit.prevent="createAuthor" class="needs-validation" novalidate>
               <div class="mb-3 row">
                 <label for="name" class="col-sm-2 col-form-label">Name</label>
@@ -81,14 +78,12 @@
       </div>
     </div>
 
-    <!-- Pestaña para editar un autor -->
     <div v-if="showTab === 'edit' && editingAuthor">
       <div class="container py-4 d-flex justify-content-center">
         <div class="card" style="width: 50rem;">
           <div class="card-body">
             <h1 class="title mb-4">Edit Author</h1>
 
-            <!-- Formulario de edición de autor -->
             <form @submit.prevent="updateAuthor" class="needs-validation" novalidate>
               <div class="mb-3 row">
                 <label for="name" class="col-sm-2 col-form-label">Name</label>

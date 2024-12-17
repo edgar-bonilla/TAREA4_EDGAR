@@ -5,18 +5,32 @@ const rabbitPromise = require('./rabbitMQ');
 
 exports.handler = async (event, context) => {
 
-  if (event.httpMethod == "OPTIONS") {
-    return { statusCode: 200, headers, body: JSON.stringify({ message: 'OK' }) }; // Respuesta válida en JSON
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers, body: JSON.stringify({ message: 'OK' }) }; 
   }
 
   try {
     const channel = await rabbitPromise();
-    const request = `{'method':'INSERT','body':${event.body}}`;
-    await channel.sendToQueue("bookstore", Buffer.from(request));
+    const request = {
+      method: "INSERT",
+      body: JSON.parse(event.body)
+    };
 
-    return { statusCode: 200, headers, body: JSON.stringify({ message: 'OK' }) }; // Respuesta válida en JSON
+    console.log("Enviando mensaje a RabbitMQ:", request); 
+
+    await channel.sendToQueue("bookstore", Buffer.from(JSON.stringify(request)));
+
+    return { 
+      statusCode: 200, 
+      headers, 
+      body: JSON.stringify({ message: 'Mensaje enviado a RabbitMQ con éxito' }) 
+    };
   } catch (error) {
-    console.log(error);
-    return { statusCode: 422, headers, body: JSON.stringify({ error: error.message }) }; // Respuesta de error válida en JSON
+    console.log("Error al enviar mensaje a RabbitMQ:", error);
+    return { 
+      statusCode: 422, 
+      headers, 
+      body: JSON.stringify({ error: error.message }) 
+    };
   }
 };

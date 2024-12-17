@@ -32,18 +32,21 @@
             <td>{{ book.copyright }}</td>
             <td>{{ book.language }}</td>
             <td>{{ book.pages }}</td>
-            <td>{{ book.author }}</td>
-            <td>{{ book.publisher }}</td>
-            <td class="action-buttons">
-              <button class="btn btn-warning btn-sm" @click="editBook(book)">Edit</button>
+            <td>{{ getAuthorName(book.author) }}</td>
+            <td>{{ getPublisherName(book.publisher) }}</td>
+
+            <td class="action-buttons d-flex">
+              <button class="btn btn-warning btn-sm me-2" @click="editBook(book)">Edit</button>
               <button class="btn btn-danger btn-sm" @click="deleteBook(book)">Delete</button>
             </td>
+
           </tr>
         </tbody>
       </table>
+      <br><br><br>
     </div>
 
-    <!-- Formulario de creación -->
+
     <div v-if="showTab === 'create'">
       <div class="container py-4 d-flex justify-content-center">
         <div class="card" style="width: 50rem;">
@@ -53,15 +56,25 @@
               <div v-for="(value, key) in newBook" :key="key" class="mb-3 row">
                 <label :for="key" class="col-sm-2 col-form-label">{{ key }}</label>
                 <div class="col-sm-7">
-                  <input v-model="newBook[key]" :id="key" class="form-control" :placeholder="'Enter ' + key" required />
+                  <input v-if="key !== 'author' && key !== 'publisher'" v-model="newBook[key]" :id="key"
+                    class="form-control" :placeholder="'Enter ' + key" required />
+
+
+                  <select v-if="key === 'author'" v-model="newBook[key]" :id="key" class="form-select" required>
+                    <option v-for="author in authors" :key="author._id" :value="author._id">{{ author.name }}</option>
+                  </select>
+
+                  <select v-if="key === 'publisher'" v-model="newBook[key]" :id="key" class="form-select" required>
+                    <option v-for="publisher in publishers" :key="publisher._id" :value="publisher._id">{{
+                      publisher.name }}</option>
+                  </select>
                 </div>
               </div>
               <div class="d-flex">
-                <button type="submit" class="btn btn-primary">Create</button>
+                <button type="submit" class="btn btn-primary me-2">Create</button>
                 <button type="button" class="btn btn-secondary" @click="cancelCreate">Cancel</button>
               </div>
             </form>
-            <br><br><br><br><br>
           </div>
         </div>
       </div>
@@ -77,9 +90,19 @@
               <div v-for="(value, key) in editingBook" :key="key" class="mb-3 row">
                 <label :for="key" class="col-sm-2 col-form-label">{{ key }}</label>
                 <div class="col-sm-7">
-                  <input v-if="key !== '_id'" v-model="editingBook[key]" :id="key" class="form-control"
-                    :placeholder="'Enter ' + key" required />
-                  <input v-else disabled v-model="editingBook[key]" :id="key" class="form-control" />
+                  <input v-if="key !== '_id' && key !== 'author' && key !== 'publisher'" v-model="editingBook[key]"
+                    :id="key" class="form-control" :placeholder="'Enter ' + key" required />
+
+                  <!-- Selector para Author en edición -->
+                  <select v-if="key === 'author'" v-model="editingBook[key]" :id="key" class="form-select" required>
+                    <option v-for="author in authors" :key="author._id" :value="author._id">{{ author.name }}</option>
+                  </select>
+
+                  <!-- Selector para Publisher en edición -->
+                  <select v-if="key === 'publisher'" v-model="editingBook[key]" :id="key" class="form-select" required>
+                    <option v-for="publisher in publishers" :key="publisher._id" :value="publisher._id">{{
+                      publisher.name }}</option>
+                  </select>
                 </div>
               </div>
               <div class="d-flex justify-content-between">
@@ -94,32 +117,13 @@
   </div>
 </template>
 
-<style scoped>
-
-body {
-  height: 100vh; 
-  overflow-y: auto; 
-  margin: 0; 
-  font-family: Arial, sans-serif; 
-}
-
-.container {
-  height: 100%; 
-  display: flex;
-  flex-direction: column;
-}
-
-table {
-  width: 100%;
-  margin-bottom: 20px;
-}
-</style>
-
 <script>
 export default {
   data() {
     return {
       books: [],
+      authors: [],
+      publishers: [],
       newBook: {
         title: '',
         edition: '',
@@ -134,14 +138,46 @@ export default {
     };
   },
   async mounted() {
-    const response = await fetch('/.netlify/functions/bookFindAll');
-    if (response.ok) {
-      this.books = await response.json();
-    } else {
-      console.error('Error fetching books.');
+    try {
+      const booksResponse = await fetch(`${this.$url}/.netlify/functions/bookFindAll`);
+      const authorsResponse = await fetch(`${this.$url}/.netlify/functions/authorFindAll`);
+      const publishersResponse = await fetch(`${this.$url}/.netlify/functions/publishersAll`);
+      
+      if (booksResponse.ok) {
+        this.books = await booksResponse.json();
+      } else {
+        console.error('Error fetching books.');
+      }
+
+      if (authorsResponse.ok) {
+        this.authors = await authorsResponse.json();
+      } else {
+        console.error('Error fetching authors.');
+      }
+
+      if (publishersResponse.ok) {
+        this.publishers = await publishersResponse.json();
+      } else {
+        console.error('Error fetching publishers.');
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
   },
+
   methods: {
+   
+    getAuthorName(authorId) {
+      const author = this.authors.find(a => a._id === authorId);
+      return author ? author.name : ''; 
+    },
+
+
+    getPublisherName(publisherId) {
+      const publisher = this.publishers.find(p => p._id === publisherId);
+      return publisher ? publisher.name : ''; 
+    },
+
     showCreateForm() {
       this.showTab = 'create';
     },
@@ -149,7 +185,7 @@ export default {
       this.showTab = 'table';
     },
     async createBook() {
-      const response = await fetch('/.netlify/functions/bookInsert', {
+      const response = await fetch(`${this.$url}/.netlify/functions/bookInsert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +211,7 @@ export default {
     },
     async updateBook() {
       const { _id, ...bookData } = this.editingBook;
-      const response = await fetch(`/.netlify/functions/bookUpdate/${_id}`, {
+      const response = await fetch(`${this.$url}/.netlify/functions/bookUpdate/${_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +232,7 @@ export default {
     },
 
     async deleteBook(book) {
-      const response = await fetch(`/.netlify/functions/bookDelete/${book._id}`, {
+      const response = await fetch(`${this.$url}/.netlify/functions/bookDelete/${book._id}`, {
         method: 'DELETE',
       });
 
@@ -212,4 +248,3 @@ export default {
   },
 };
 </script>
-                                 

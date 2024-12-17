@@ -3,7 +3,6 @@
     <br><br><br>
     <h1 class="title mb-4">Publishers</h1>
 
-    <!-- Botón para mostrar el formulario de creación -->
     <div v-if="showTab === 'table'">
       <div class="d-flex justify-content-end">
         <button class="btn btn-success mb-4" @click="showCreateForm">Create Publisher</button>
@@ -26,7 +25,7 @@
             <td>{{ publisher.country }}</td>
             <td>{{ publisher.founded_year }}</td>
             <td class="action-buttons">
-              <button class="btn btn-warning btn-sm" @click="editPublisher(publisher)">Edit</button>
+              <button class="btn btn-warning btn-sm m-2" @click="editPublisher(publisher)">Edit</button>
               <button class="btn btn-danger btn-sm" @click="deletePublisher(publisher)">Delete</button>
             </td>
           </tr>
@@ -34,7 +33,6 @@
       </table>
     </div>
 
-    <!-- Tab para crear un nuevo publisher -->
     <div v-if="showTab === 'create'">
       <div class="container py-4 d-flex justify-content-center">
         <div class="card" style="width: 50rem;">

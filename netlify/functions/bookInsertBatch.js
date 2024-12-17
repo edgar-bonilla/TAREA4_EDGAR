@@ -2,7 +2,7 @@
 
 const clientPromise = require('./mongoDB');
 const headers = require('./headersCORS');
-const { ObjectId } = require('mongodb'); 
+const { ObjectId } = require('mongodb');
 
 exports.handler = async (event, context) => {
   
@@ -14,18 +14,16 @@ exports.handler = async (event, context) => {
     const client = await clientPromise;
     const data = JSON.parse(event.body); 
 
-
     if (!data._id) {
       data._id = new ObjectId();
     } else {
-    
       data._id = new ObjectId(data._id);
     }
 
-    console.log("Datos a insertar:", data);
+    console.log("Datos a insertar en MongoDB:", data); // Log para verificar los datos
 
     const result = await client.db("bookstore").collection("books").insertOne(data);
-    
+
     return { 
       statusCode: 200, 
       headers, 
@@ -36,7 +34,7 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.log("Error en la inserción del libro:", error);
+    console.log("Error al insertar el libro en MongoDB:", error);
     return { 
       statusCode: 500, 
       headers, 
